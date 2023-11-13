@@ -7,7 +7,7 @@ on:
         description: "Version of Node.js to use."
         required: false
         type: string
-        default: "18.x"
+        default: "18"
 
       npm-install-command:
         description: "The npm command to run for building the application."
@@ -49,17 +49,17 @@ jobs:
         run: npm ${{ inputs.npm-install-command }}
 
       - name: Install Playwright Browsers
-        if: ${{ inputs.run-playwright == 'true' }}
+        if: ${{ inputs.run-playwright == true }}
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        if: ${{ inputs.run-playwright == 'true' }}
+        if: ${{ inputs.run-playwright == true }}
         run: npx playwright test
         env:
           USERNAME: ${{secrets.USERNAME}}
           PASSWORD: ${{secrets.PASSWORD}}
       - uses: actions/upload-artifact@v3
-        if: ${{ inputs.upload-artifact == 'true' }}
+        if: ${{ inputs.upload-artifact == true }}
         with:
           name: playwright-report
           path: playwright-report/

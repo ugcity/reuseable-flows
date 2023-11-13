@@ -1,0 +1,69 @@
+name: Reusable Workflow
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Version of Node.js to use."
+        required: false
+        type: string
+        default: "18.x"
+
+      npm-install-command:
+        description: "The npm command to run for building the application."
+        required: true
+        type: string
+        default: "ci" 
+
+      run-playwright:
+        description: "Should Playwright browsers be installed and tests be run?"
+        required: false
+        type: boolean
+        default: true
+
+      upload-artifact:
+        description: "Should the artifact be uploaded?"
+        required: false
+        type: boolean
+        default: true
+
+    secrets:
+      USERNAME:
+        description: Username for testing
+        required: false
+      PASSWORD:
+        description: Password for testing
+        required: false
+  # push:
+  #   branches: [main, master]
+  # pull_request:
+  #   branches: [main, master]
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Install dependencies
+        run: npm ${{ inputs.npm-install-command }}
+
+      - name: Install Playwright Browsers
+        if: ${{ inputs.run-playwright == 'true' }}
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        if: ${{ inputs.run-playwright == 'true' }}
+        run: npx playwright test
+        env:
+          USERNAME: ${{secrets.USERNAME}}
+          PASSWORD: ${{secrets.PASSWORD}}
+      - uses: actions/upload-artifact@v3
+        if: ${{ inputs.upload-artifact == 'true' }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
